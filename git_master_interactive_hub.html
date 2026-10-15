@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Git Commands - Guia Interativo Completo</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          },
+          colors: {
+            git: {
+              red: '#F05032',
+              dark: '#1E1E24',
+              orange: '#F14E32',
+              blue: '#0284c7',
+              green: '#10b981',
+              purple: '#8b5cf6',
+              amber: '#f59e0b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .code-editor-line {
+      counter-increment: line;
+    }
+    .code-editor-line::before {
+      content: counter(line);
+      display: inline-block;
+      width: 2rem;
+      color: #64748b;
+      margin-right: 1rem;
+      text-align: right;
+      user-select: none;
+    }
+    .workflow-arrow::after {
+      content: '➔';
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: #cbd5e1;
+    }
+    @media (max-width: 768px) {
+      .workflow-arrow::after {
+        content: '⬇';
+        right: 50%;
+        bottom: -20px;
+        top: auto;
+        transform: translateX(50%);
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-rose-500 selection:text-white">
+
+  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-800 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-600 to-rose-600 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white font-bold text-xl">
+            <i class="fa-brands fa-git-alt"></i>
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-400 via-rose-400 to-amber-300 bg-clip-text text-transparent">
+              Master Git Commands
+            </h1>
+            <p class="text-xs text-slate-400 hidden sm:block">Guia de Referência Interativo Completo com Exemplos e Prática</p>
+          </div>
+        </div>
+
+        <!-- Terminal Launcher & Action Buttons -->
+        <div class="flex items-center gap-2">
+          <button id="toggle-terminal-btn" onclick="toggleTerminalModal()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm font-medium border border-slate-700 text-slate-200 hover:text-white transition-all flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-terminal text-emerald-400"></i>
+            <span class="hidden md:inline">Abrir</span> Simulador Git
+          </button>
+          <button onclick="openQuickSearch()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-sm" title="Buscar Comandos">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </div>
+      </div>
+
+      <nav class="flex space-x-1 overflow-x-auto py-2 border-t border-slate-800/80 no-scrollbar" id="tabs-container">
+        <!-- Generated dynamically or configured static -->
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- Modal de Feedback (Copiado / Alertas elegantes) -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-emerald-500/40 text-emerald-300 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+      <i class="fa-solid fa-circle-check text-emerald-400"></i>
+      <span id="toast-text" class="text-sm font-medium">Comando copiado com sucesso!</span>
+    </div>
+
+    <!-- Container dos Conteúdos das Abas -->
+    <div id="tab-contents">
+      <!-- As abas são inseridas e gerenciadas via JS para manter o código ultra estruturado -->
+    </div>
+  </main>
+
+  <div id="terminal-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6 transition-all">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden h-[540px]">
+      <!-- Terminal Header -->
+      <div class="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+          <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+          <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+          <span class="ml-2 text-xs font-mono text-slate-400 font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-code-branch text-orange-400"></i> bash - git sandbox: ~/meu-projeto (<span id="term-branch-name" class="text-emerald-400">main</span>)
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="resetTerminalState()" title="Resetar ambiente" class="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800 border border-slate-700">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+          <button onclick="toggleTerminalModal()" class="text-slate-400 hover:text-white text-sm p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Terminal Output Area -->
+      <div id="terminal-screen" class="flex-1 bg-slate-950/95 font-mono text-sm p-4 overflow-y-auto space-y-2 text-slate-200">
+        <div class="text-slate-500 text-xs">
+          Terminal Git Interativo v2.42.0 pronto. Digite comandos como <span class="text-amber-400">git status</span>, <span class="text-amber-400">git branch</span>, <span class="text-amber-400">git log</span>, <span class="text-amber-400">git diff</span> ou <span class="text-emerald-400">help</span> para testar!
+        </div>
+      </div>
+
+      <!-- Quick Command Pills for easy touch usage -->
+      <div class="bg-slate-900 border-t border-slate-800 px-3 py-2 flex items-center gap-1.5 overflow-x-auto text-xs no-scrollbar">
+        <span class="text-slate-500 font-mono text-[11px] uppercase mr-1">Sugestões:</span>
+        <button onclick="runCommand('git status')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-sky-300 font-mono">git status</button>
+        <button onclick="runCommand('git add .')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-emerald-300 font-mono">git add .</button>
+        <button onclick="runCommand('git commit -m &quot;feat: login completo&quot;')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-amber-300 font-mono">git commit</button>
+        <button onclick="runCommand('git log --oneline')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-purple-300 font-mono">git log</button>
+        <button onclick="runCommand('git branch -a')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-rose-300 font-mono">git branch</button>
+        <button onclick="runCommand('git switch -c feature/login')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-indigo-300 font-mono">git switch -c</button>
+      </div>
+
+      <!-- Terminal Input Line -->
+      <form id="terminal-form" onsubmit="handleTerminalSubmit(event)" class="bg-slate-900 px-4 py-3 border-t border-slate-800 flex items-center gap-2">
+        <span class="text-emerald-400 font-mono text-sm font-bold flex items-center gap-1">
+          <span>user@dev</span><span class="text-slate-400">:</span><span class="text-sky-400">~/app</span><span class="text-slate-400">$</span>
+        </span>
+        <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" placeholder="Digite um comando git..." class="flex-1 bg-transparent text-slate-100 font-mono text-sm focus:outline-none placeholder-slate-600">
+        <button type="submit" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-semibold">Executar</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="search-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-start justify-center pt-20 p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+        <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+        <input id="search-input" oninput="filterCommands(this.value)" type="text" placeholder="Pesquisar por comando (ex: switch, commit, origin, stash)..." class="w-full bg-transparent text-slate-100 focus:outline-none placeholder-slate-500 text-sm">
+        <button onclick="closeQuickSearch()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="search-results" class="max-h-80 overflow-y-auto p-2 divide-y divide-slate-800/60">
+        <!-- Resultados da busca renderizados dinamicamente -->
+      </div>
+    </div>
+  </div>
+
+  <footer class="border-t border-slate-800 bg-slate-900 mt-12 py-6 text-slate-400 text-xs text-center">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-300">Git Mastery Cheat Sheet</span>
+        <span>•</span>
+        <span>Baseado no conteúdo visual de referência</span>
+      </div>
+      <div class="flex items-center gap-4 text-base">
+        <a href="#" class="hover:text-rose-400 transition-colors" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" class="hover:text-slate-100 transition-colors" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        <a href="#" class="hover:text-blue-400 transition-colors" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+        <a href="#" class="hover:text-sky-400 transition-colors" title="Telegram"><i class="fa-brands fa-telegram"></i></a>
+        <a href="#" class="hover:text-slate-200 transition-colors" title="X (Twitter)"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="#" class="hover:text-indigo-400 transition-colors" title="Discord"><i class="fa-brands fa-discord"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Definição dos dados completos extraídos das 10 páginas
+    const gitAppData = [
+      {
+        id: "overview",
+        name: "Visão Geral & Básico",
+        icon: "fa-compass",
+        subtitle: "O que todo iniciante e profissional deve saber",
+        summary: "Git é um sistema de controle de versão distribuído que rastreia alterações nos arquivos do projeto com histórico detalhado e segurança.",
+        sections: [
+          {
+            type: "cards_grid",
+            title: "Conceitos Fundamentais",
+            items: [
+              {
+                title: "1. O que é o Git?",
+                badge: "Conceito",
+                color: "rose",
+                points: [
+                  "É um sistema de controle de versão distribuído que rastreia mudanças nos seus arquivos.",
+                  "Permite salvar diferentes versões do código e voltar a estados anteriores sem riscos.",
+                  "Usado por engenheiros para código-fonte, configurações, documentação e infraestrutura como código (IaC)."
+                ]
+              },
+              {
+                title: "2. Por que Engenheiros Usam Git?",
+                badge: "Vantagens",
+                color: "emerald",
+                points: [
+                  "Rastreamento minucioso de mudanças e histórico completo com autor e data.",
+                  "Trabalho em novas funcionalidades em paralelo sem quebrar o código principal (main).",
+                  "Colaboração segura entre vários membros da equipe simultaneamente.",
+                  "Reversão rápida para versões estáveis se houver incidentes ou bugs em produção.",
+                  "Gerenciamento confiável em ambientes de DevOps e CI/CD."
+                ]
+              },
+              {
+                title: "3. Git vs GitHub: Não confunda!",
+                badge: "Diferença Chave",
+                color: "sky",
+                points: [
+                  "<strong>Git:</strong> Sistema de controle de versão instalado localmente na sua máquina, funciona 100% offline.",
+                  "<strong>GitHub:</strong> Plataforma web em nuvem que hospeda repositórios Git remotos, adicionando pull requests, revisões e issues.",
+                  "GitHub não substitui o Git; ele usa o Git por debaixo dos panos."
+                ]
+              },
+              {
+                title: "4. Termos-Chave Essenciais",
+                badge: "Vocabulário",
+                color: "amber",
+                points: [
+                  "<strong>Repository (Repo):</strong> Pasta do projeto rastreada pelo Git, contendo todos os arquivos e o histórico completo (.git).",
+                  "<strong>Working Directory:</strong> Sua pasta de trabalho local onde você cria e edita arquivos em tempo real.",
+                  "<strong>Staging Area (Index):</strong> Área temporária onde você seleciona e prepara as alterações antes do commit.",
+                  "<strong>Commit:</strong> Snapshot (foto) permanente das alterações salvas com ID SHA único e mensagem explicativa."
+                ]
+              }
+            ]
+          },
+          {
+            type: "interactive_workflow",
+            title: "5. Fluxo Básico do Git (Basic Workflow)",
+            description: "Clique em cada etapa para entender o ciclo de vida de uma alteração no código:",
+            steps: [
+              {
+                step: "1",
+                label: "Working Directory",
+                icon: "fa-folder-open",
+                color: "text-amber-400 border-amber-500/50 bg-amber-500/10",
+                action: "Você cria ou edita arquivos no seu projeto local.",
+                command: "touch index.html"
+              },
+              {
+                step: "2",
+                label: "Staging Area",
+                icon: "fa-list-check",
+                color: "text-purple-400 border-purple-500/50 bg-purple-500/10",
+                action: "Você seleciona exatamente o que quer incluir no commit usando git add.",
+                command: "git add index.html"
+              },
+              {
+                step: "3",
+                label: "Local Repository",
+                icon: "fa-box-archive",
+                color: "text-rose-400 border-rose-500/50 bg-rose-500/10",
+                action: "As mudanças são gravadas no histórico local com um commit.",
+                command: 'git commit -m "feat: adiciona index"'
+              },
+              {
+                step: "4",
+                label: "Remote Repository (GitHub)",
+                icon: "fa-cloud-arrow-up",
+                color: "text-sky-400 border-sky-500/50 bg-sky-500/10",
+                action: "Você envia seus commits para a nuvem para compartilhar com o time.",
+                command: "git push origin main"
+              }
+            ]
+          },
+          {
+            type: "devops_callout",
+            title: "6. Por que o Controle de Versão é Crucial em DevOps?",
+            points: [
+              "Mantém códigos de infraestrutura e aplicação estritamente organizados e auditáveis.",
+              "Permite que múltiplos engenheiros colaborem com isolamento e segurança.",
+              "Fornece trilha de auditoria completa para conformidade e identificação de causas raízes.",
+              "Alimenta pipelines automatizados de Integração Contínua e Deploy Contínuo (CI/CD).",
+              "Reduz drasticamente erros manuais acidentais em produção e facilita rollbacks instantâneos."
+            ],
+            keyTakeaway: "O Git rastreia mudanças, viabiliza o trabalho em equipe e mantém seu código seguro. O GitHub hospeda repositórios na nuvem, mas o Git roda diretamente na sua máquina local."
+          }
+        ]
+      },
+      {
+        id: "config",
+        name: "Configuração & Setup",
+        icon: "fa-sliders",
+        subtitle: "Configurando identidade, e-mail e preferências globais e locais",
+        summary: "Aprenda a configurar seu nome de autor, e-mail e preferências para que cada contribuição seja registrada com precisão.",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos Principais de Configuração",
+            commands: [
+              {
+                cmd: "git --version",
+                desc: "Exibe a versão do Git instalada no seu sistema. Confirma se o Git está instalado e funcionando.",
+                exampleRun: "git version 2.42.0",
+                tip: "Execute sempre logo após instalar o Git para validar o ambiente."
+              },
+              {
+                cmd: 'git config --global user.name "Ann Felix"',
+                desc: "Define o nome que aparecerá como autor em todos os commits feitos nesta máquina.",
+                exampleRun: "",
+                tip: "Use aspas duplas caso seu nome contenha espaços."
+              },
+              {
+                cmd: 'git config --global user.email "ann@example.com"',
+                desc: "Define o e-mail de autor para todos os repositórios. Deve ser o mesmo e-mail vinculado ao seu GitHub.",
+                exampleRun: "",
+                tip: "Garante que seus commits sejam associados à sua foto e perfil do GitHub."
+              },
+              {
+                cmd: "git config --list",
+                desc: "Exibe todas as configurações ativas no momento (globais e locais).",
+                exampleRun: "user.name=Ann Felix\nuser.email=ann@example.com\ncore.editor=vim",
+                tip: "Ótimo para conferir se seu nome e e-mail foram salvos corretamente."
+              },
+              {
+                cmd: "git config --show-origin --list",
+                desc: "Mostra a origem de cada configuração (se veio de arquivo global, local do projeto ou do sistema).",
+                exampleRun: "file:/home/ann/.gitconfig user.name=Ann Felix\nfile:/home/ann/.gitconfig user.email=ann@example.com",
+                tip: "Descubra qual arquivo específico está sobrescrevendo suas opções."
+              }
+            ]
+          },
+          {
+            type: "comparison_box",
+            title: "Configuração Global vs Local",
+            items: [
+              {
+                title: "Configuração Global (--global)",
+                badge: "Máquina Inteira",
+                icon: "fa-globe",
+                points: [
+                  "Aplica-se a todos os repositórios do usuário no computador.",
+                  "Salva no arquivo ~/.gitconfig no diretório pessoal.",
+                  "Ideal para seu nome padrão, e-mail principal e preferências de editor."
+                ]
+              },
+              {
+                title: "Configuração Local (sem flag)",
+                badge: "Apenas o Repositório Atual",
+                icon: "fa-folder-closed",
+                points: [
+                  "Aplica-se única e exclusivamente ao repositório onde é executado.",
+                  "Salva dentro de .git/config dentro da pasta do projeto.",
+                  "Perfeito para alternar entre e-mail corporativo (empresa) e e-mail pessoal sem conflitos."
+                ]
+              }
+            ]
+          },
+          {
+            type: "additional_commands_table",
+            title: "Outros Comandos Úteis de Configuração",
+            rows: [
+              { cmd: "git config user.name", desc: "Exibe o nome de usuário configurado especificamente para este repo." },
+              { cmd: "git config user.email", desc: "Exibe o e-mail configurado para este repo." },
+              { cmd: "git config --global --edit", desc: "Abre o arquivo global de configuração no seu editor de texto padrão." },
+              { cmd: "git config --edit", desc: "Abre o arquivo local (.git/config) no editor padrão para edição rápida." }
+            ]
+          },
+          {
+            type: "mistakes_and_checklist",
+            title: "Erros Comuns de Iniciantes & Checklist Rápido",
+            mistakes: [
+              "Esquecer de configurar nome e e-mail antes de fazer o primeiro commit.",
+              "Usar um e-mail diferente da conta cadastrada no GitHub (perde o link do perfil).",
+              "Achar que configurações globais afetam repositórios de outros usuários do mesmo SO.",
+              "Não verificar a configuração e enviar commits com nome genérico de máquina."
+            ],
+            checklist: [
+              "Execute 'git --version' para confirmar a instalação.",
+              "Configure nome e e-mail com '--global'.",
+              "Execute 'git config --list' para auditar os valores.",
+              "Use 'git config --show-origin --list' se houver dúvidas sobre arquivos sobrescritos."
+            ]
+          }
+        ]
+      },
+      {
+        id: "create_clone",
+        name: "Criar & Clonar",
+        icon: "fa-clone",
+        subtitle: "Iniciando novos repositórios ou baixando projetos existentes",
+        summary: "Como criar projetos do zero ou baixar repositórios existentes com todo o histórico preservado.",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos de Inicialização e Clonagem",
+            commands: [
+              {
+                cmd: "git init",
+                desc: "Cria um novo repositório Git no diretório atual, inicializando uma pasta oculta chamada .git para rastrear mudanças.",
+                exampleRun: "Initialized empty Git repository in /home/ann/my-project/.git/",
+                tip: "Execute na raiz da pasta do seu projeto existente ou recém-criado."
+              },
+              {
+                cmd: "git clone <repo-url>",
+                desc: "Cria uma cópia completa de um repositório remoto na sua máquina local, baixando todos os arquivos e histórico de commits.",
+                exampleRun: "git clone https://github.com/veriqta/demo.git",
+                tip: "Configura automaticamente o repositório remoto com o nome padrão 'origin'."
+              },
+              {
+                cmd: "git clone --branch <nome-branch> <repo-url>",
+                desc: "Clona diretamente uma branch específica em vez da branch padrão (geralmente main).",
+                exampleRun: "git clone --branch feature/login https://github.com/veriqta/demo.git",
+                tip: "Excelente para trabalhar rapidamente em uma funcionalidade sem baixar branches extras como ativas."
+              },
+              {
+                cmd: "git remote -v",
+                desc: "Exibe todos os repositórios remotos vinculados ao seu repositório local, mostrando URLs de fetch e push.",
+                exampleRun: "origin https://github.com/veriqta/demo.git (fetch)\norigin https://github.com/veriqta/demo.git (push)",
+                tip: "Confirme se sua máquina está apontando para o repositório correto no GitHub."
+              }
+            ]
+          },
+          {
+            type: "comparison_box",
+            title: "Repositório Local vs Remoto",
+            items: [
+              {
+                title: "Repositório Local",
+                badge: "Seu Computador",
+                icon: "fa-laptop-code",
+                points: [
+                  "Mora no seu disco rígido local.",
+                  "Você tem controle absoluto sobre todos os arquivos.",
+                  "Funciona 100% offline sem necessidade de conexão com a internet.",
+                  "Armazenado dentro do diretório oculto .git.",
+                  "Usado para desenvolvimento ativo, testes e commits locais."
+                ]
+              },
+              {
+                title: "Repositório Remoto",
+                badge: "Nuvem / Servidor",
+                icon: "fa-cloud",
+                points: [
+                  "Hospedado em servidores como GitHub, GitLab ou Bitbucket.",
+                  "Acessível via internet por qualquer colaborador autorizado.",
+                  "Centro de colaboração, backups e revisões de código (Pull Requests).",
+                  "Armazena todo o histórico compartilhado do time.",
+                  "Normalmente chamado pelo apelido 'origin'."
+                ]
+              }
+            ]
+          },
+          {
+            type: "interactive_practice",
+            title: "Guia Prático: Crie Seu Primeiro Repositório Passo a Passo",
+            steps: [
+              { num: 1, title: "Criar pasta do projeto", code: "mkdir meu-projeto && cd meu-projeto" },
+              { num: 2, title: "Inicializar o repositório", code: "git init" },
+              { num: 3, title: "Criar um arquivo inicial", code: 'echo "# Meu Projeto Incrível" > README.md' },
+              { num: 4, title: "Adicionar e comitar", code: 'git add README.md && git commit -m "feat: commit inicial"' },
+              { num: 5, title: "Verificar o status", code: "git status" },
+              { num: 6, title: "Conectar ao GitHub (Opcional)", code: "git remote add origin https://github.com/usuario/meu-projeto.git\ngit push -u origin main" }
+            ],
+            keyTakeaway: "Use 'git init' ao começar um projeto novo na sua máquina. Use 'git clone' para baixar um projeto existente do GitHub. Repositórios clonados já vêm conectados ao 'origin'."
+          }
+        ]
+      },
+      {
+        id: "status_diff",
+        name: "Status & Diff",
+        icon: "fa-magnifying-glass-chart",
+        subtitle: "Inspecionando modificações, arquivos preparados e divergências",
+        summary: "Descubra com precisão o estado de cada arquivo do seu projeto antes de preparar ou enviar alterações.",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos de Inspeção de Estado",
+            commands: [
+              {
+                cmd: "git status",
+                desc: "Exibe o estado detalhado do working directory e da staging area: arquivos modificados, preparados, não rastreados ou deletados.",
+                exampleRun: "On branch main\nChanges to be committed:\n  (use \"git restore --staged <file>...\" to unstage)\n\tmodified:   app.py\n\nChanges not staged for commit:\n\tmodified:   readme.md\n\nUntracked files:\n\tnotes.txt",
+                tip: "O comando mais importante do Git! Execute sempre antes de adicionar ou comitar."
+              },
+              {
+                cmd: "git status -sb",
+                desc: "Exibe o status de forma compacta e resumida, com a branch atual e flags sintéticas de cada arquivo.",
+                exampleRun: "## main\n M app.py\n?? notes.txt",
+                tip: "Legenda: M = Modificado, ?? = Untracked (Não rastreado), A = Adicionado na Staging."
+              },
+              {
+                cmd: "git diff",
+                desc: "Mostra linha por linha as alterações exatas em arquivos modificados que ainda NÃO foram adicionados à staging area.",
+                exampleRun: "diff --git a/app.py b/app.py\n--- a/app.py\n+++ b/app.py\n@@ -0,0 +1,2 @@\n+print(\"Hello World\")",
+                tip: "Excelente para revisar o código antes de executar 'git add'."
+              },
+              {
+                cmd: "git diff --stat",
+                desc: "Exibe um resumo estatístico das alterações: arquivos alterados, linhas inseridas (+) e linhas deletadas (-).",
+                exampleRun: "app.py     | 2 ++\nreadme.md  | 5 +++--\n2 files changed, 6 insertions(+), 1 deletion(-)",
+                tip: "Perfeito para uma visão panorâmica e rápida de grandes refatorações."
+              }
+            ]
+          },
+          {
+            type: "file_states_table",
+            title: "Entendendo os Estados de Arquivos no Git",
+            states: [
+              { state: "Tracked (Rastreado)", meaning: "O Git já conhece e rastreia o arquivo no histórico.", indicator: "Sem rótulo especial se inalterado", example: "app.py" },
+              { state: "Modified (Modificado)", meaning: "Arquivo rastreado que sofreu alterações locais.", indicator: "M (em status)", example: "app.py" },
+              { state: "Staged (Preparado)", meaning: "Alterações adicionadas à área temporária para o próximo commit.", indicator: "A ou M (área de staging verde)", example: "app.py" },
+              { state: "Untracked (Não Rastreado)", meaning: "Arquivo recém-criado que o Git ainda não acompanha.", indicator: "?? (em status curto)", example: "notes.txt" }
+            ]
+          },
+          {
+            type: "mistakes_and_checklist",
+            title: "Erros Comuns ao Verificar Status",
+            mistakes: [
+              "Fazer commits sem antes executar 'git status' para conferir o que está sendo incluído.",
+              "Esquecer de adicionar novos arquivos criados ao staging (ficam como untracked).",
+              "Ignorar arquivos modificados achando que foram incluídos automaticamente.",
+              "Confundir arquivos staged (prontos para commit) com modificados mas unstaged.",
+              "Achar que arquivos não rastreados (untracked) serão salvos no commit sem 'git add'."
+            ],
+            checklist: [
+              "Use 'git status' antes e depois de cada ação.",
+              "Lembre-se: 'M' indica alterado e '??' indica arquivo novo não rastreado.",
+              "Use 'git diff' para revisar as linhas de código modificadas.",
+              "Use 'git diff --stat' para conferir a contagem total de inserções e remoções."
+            ]
+          }
+        ]
+      },
+      {
+        id: "add_commit",
+        name: "Add & Commit",
+        icon: "fa-square-check",
+        subtitle: "Preparando alterações e registrando snapshots definitivos",
+        summary: "Aprenda a selecionar cirurgicamente o que vai entrar no commit e a escrever mensagens claras.",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos de Preparação e Commit",
+            commands: [
+              {
+                cmd: "git add file.txt",
+                desc: "Adiciona um arquivo específico à staging area, preparando-o exclusivamente para o próximo commit.",
+                exampleRun: "git add src/app.py",
+                tip: "Use quando quiser dividir alterações em commits atômicos e bem focados."
+              },
+              {
+                cmd: "git add .",
+                desc: "Adiciona todas as alterações (novos arquivos, modificados e deletados) do diretório atual e subdiretórios.",
+                exampleRun: "git add .",
+                tip: "Tenha cuidado para não adicionar acidentalmente arquivos sensíveis (.env, credenciais)."
+              },
+              {
+                cmd: 'git commit -m "mensagem"',
+                desc: "Grava as alterações da staging area no repositório local, criando um snapshot permanente com um ID hash único.",
+                exampleRun: 'git commit -m "feat: adicionar funcionalidade de login"',
+                tip: "Escreva mensagens descritivas explicando O QUE foi feito e POR QUÊ."
+              },
+              {
+                cmd: "git diff --cached",
+                desc: "Mostra as alterações exatas que estão preparadas na Staging Area (prontas para serem comitadas).",
+                exampleRun: "diff --git a/app.py b/app.py\n--- a/app.py\n+++ b/app.py\n+print(\"Feature Pronta\")",
+                tip: "O comando definitivo para conferir o que REALMENTE vai entrar no commit."
+              }
+            ]
+          },
+          {
+            type: "comparison_box",
+            title: "Staging Area vs Committing",
+            items: [
+              {
+                title: "Staging (git add)",
+                badge: "Preparação / Rascunho",
+                icon: "fa-list-ol",
+                points: [
+                  "Permite selecionar mudanças cirurgicamente.",
+                  "Possibilita revisar exatamente o que será enviado.",
+                  "Permite preparar apenas partes ou arquivos específicos.",
+                  "Nada ainda foi salvo permanentemente no histórico."
+                ]
+              },
+              {
+                title: "Committing (git commit)",
+                badge: "Snapshot Permanente",
+                icon: "fa-floppy-disk",
+                points: [
+                  "Salva de fato as alterações preparadas no repositório local.",
+                  "Cria um ponto de restauração imutável com hash SHA e autor.",
+                  "Adiciona uma nova entrada cronológica na árvore do projeto.",
+                  "Pronto para ser compartilhado com a equipe via push."
+                ]
+              }
+            ]
+          },
+          {
+            type: "interactive_practice",
+            title: "Prática Recomendada: Adicionar e Comitar com Segurança",
+            steps: [
+              { num: 1, title: "Criar novo arquivo", code: 'echo "print(\'Hello Git\')" > hello.py' },
+              { num: 2, title: "Verificar o status", code: "git status" },
+              { num: 3, title: "Adicionar o arquivo à staging", code: "git add hello.py" },
+              { num: 4, title: "Validar o que está staged", code: "git diff --cached" },
+              { num: 5, title: "Comitar com mensagem semântica", code: 'git commit -m "feat: adiciona script inicial hello.py"' },
+              { num: 6, title: "Verificar histórico", code: "git log --oneline -n 1" }
+            ],
+            keyTakeaway: "Use 'git add' para selecionar o que comitar, 'git diff --cached' para revisar e 'git commit' para registrar. Crie commits pequenos e com mensagens significativas."
+          },
+          {
+            type: "mistakes_and_checklist",
+            title: "Erros Comuns no Add & Commit",
+            mistakes: [
+              "Esquecer de executar 'git add' antes do 'git commit'.",
+              "Usar 'git add .' indiscriminadamente quando queria comitar apenas um arquivo.",
+              "Escrever mensagens inúteis como 'alterações', 'fix' ou 'ajustes'.",
+              "Comitar arquivos sensíveis como .env, senhas, chaves de API ou logs.",
+              "Não revisar com 'git diff --cached' antes de fechar o commit.",
+              "Achar que 'git add' já grava as mudanças permanentemente no histórico."
+            ],
+            checklist: [
+              "Sempre adicione um arquivo .gitignore para bloquear arquivos sensíveis e temporários.",
+              "Revise as alterações com 'git diff --cached'.",
+              "Use mensagens no tempo presente imperativo (ex: 'feat: add login' ou 'corrige cálculo de frete')."
+            ]
+          }
+        ]
+      },
+      {
+        id: "history",
+        name: "Histórico de Commits",
+        icon: "fa-timeline",
+        subtitle: "Visualizando logs, hashes SHA, árvores de branches e o ponteiro HEAD",
+        summary: "Descubra como navegar pela linha do tempo do repositório, inspecionar commits passados e entender referências de HEAD.",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos de Log e Histórico",
+            commands: [
+              {
+                cmd: "git log",
+                desc: "Exibe o histórico detalhado completo de commits da branch atual: hash SHA, autor, data e mensagem completa. Pressione 'q' para sair.",
+                exampleRun: "commit 3a5f9e2c7d1e4b8a...\nAuthor: Ann Felix <ann@example.com>\nDate:   Mon Oct 2 10:15:30 2026\n\n    Add login feature",
+                tip: "Use as setas para rolar a lista e 'q' no teclado para sair do pager."
+              },
+              {
+                cmd: "git log --oneline",
+                desc: "Exibe cada commit resumido em uma única linha com hash curto (7 caracteres) e mensagem.",
+                exampleRun: "3a5f9e2 Add login feature\n7b1c4d8 Fix bug in dashboard\n9c2e1a3 Update README\n4d8f9c0 Initial commit",
+                tip: "A visualização mais rápida e produtiva para o dia a dia."
+              },
+              {
+                cmd: "git log --graph --oneline --all",
+                desc: "Desenha um gráfico visual em ASCII com as ramificações, merges e histórico de todas as branches.",
+                exampleRun: "* 3a5f9e2 (HEAD -> main) Add login\n* 7b1c4d8 Fix bug in dashboard\n| * 2c9d1e7 (feature/ui) Update UI\n|/\n* 9c2e1a3 Update README\n* 4d8f9c0 Initial commit",
+                tip: "Indispensável para entender projetos com múltiplos desenvolvedores."
+              },
+              {
+                cmd: "git show <commit-id>",
+                desc: "Exibe informações completas de um commit específico, incluindo autor, data e o diff linha por linha.",
+                exampleRun: "commit 3a5f9e2...\nAuthor: Ann Felix <ann@example.com>\n\ndiff --git a/app.py b/app.py\n+ def login():\n+    return \"Login page\"",
+                tip: "Substitua <commit-id> pelos 7 primeiros caracteres do hash (ex: 3a5f9e2)."
+              },
+              {
+                cmd: "git show HEAD",
+                desc: "Exibe os detalhes do commit mais recente onde você está posicionado atualmente.",
+                exampleRun: "commit 3a5f9e2c7d1e4b8a...\nAuthor: Ann Felix <ann@example.com>\n+ def login():",
+                tip: "HEAD aponta sempre para o commit mais recente da branch ativa."
+              }
+            ]
+          },
+          {
+            type: "comparison_box",
+            title: "Entendendo Commit ID (SHA) e o Ponteiro HEAD",
+            items: [
+              {
+                title: "Commit ID (Hash SHA-1)",
+                badge: "Identificador Único",
+                icon: "fa-fingerprint",
+                points: [
+                  "Identificador criptográfico de 40 caracteres hexadecimais (ex: 3a5f9e2c7d...).",
+                  "Você pode usar apenas os 7 primeiros caracteres para a maioria dos comandos.",
+                  "Garante que o conteúdo do commit nunca possa ser adulterado sem alterar o ID."
+                ]
+              },
+              {
+                title: "Ponteiro HEAD",
+                badge: "Posição Atual",
+                icon: "fa-crosshairs",
+                points: [
+                  "Ponteiro que indica onde sua pasta de trabalho está situada no histórico.",
+                  "Avança automaticamente para frente sempre que você faz um novo commit.",
+                  "Você pode usar referências relativas como HEAD~1 (commit anterior) ou HEAD~2."
+                ]
+              }
+            ]
+          },
+          {
+            type: "additional_commands_table",
+            title: "Opções e Filtros Avançados do git log",
+            rows: [
+              { cmd: "git log -n 5", desc: "Exibe apenas os últimos 5 commits." },
+              { cmd: 'git log --author="Ann Felix"', desc: "Filtra commits realizados por um autor específico." },
+              { cmd: 'git log --since="2026-10-01"', desc: "Exibe commits realizados a partir de uma data específica." },
+              { cmd: "git log -p filename", desc: "Mostra o histórico de alterações detalhado de um arquivo específico." }
+            ]
+          }
+        ]
+      },
+      {
+        id: "branches",
+        name: "Branches & Ramificações",
+        icon: "fa-code-branch",
+        subtitle: "Trabalhando com branches, isolamento de funcionalidades e troca de contexto",
+        summary: "Como criar, listar, alternar e excluir branches para isolar novas features e correções com segurança total.",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos de Gerenciamento de Branches",
+            commands: [
+              {
+                cmd: "git branch",
+                desc: "Lista todas as branches locais do repositório. A branch ativa no momento é destacada com um asterisco (*).",
+                exampleRun: "* main\n  feature/login\n  bugfix/ui",
+                tip: "Use sempre para confirmar em qual ramificação você está trabalhando."
+              },
+              {
+                cmd: "git branch -a",
+                desc: "Lista todas as branches existentes: locais e remotas (prefixadas com remotes/origin/).",
+                exampleRun: "* main\n  feature/login\n  remotes/origin/main\n  remotes/origin/feature/login",
+                tip: "Mostra o panorama completo da sua máquina e do GitHub."
+              },
+              {
+                cmd: "git switch -c feature/login",
+                desc: "Cria uma nova branch e alterna imediatamente para ela. (Comando moderno equivalente ao antigo git checkout -b).",
+                exampleRun: "Switched to a new branch 'feature/login'",
+                tip: "A forma mais rápida e recomendada de começar uma nova tarefa."
+              },
+              {
+                cmd: "git switch main",
+                desc: "Alterna para uma branch existente. O seu diretório de arquivos é atualizado para refletir o estado dessa branch.",
+                exampleRun: "Switched to branch 'main'",
+                tip: "Certifique-se de que não há alterações pendentes sem commit antes de alternar."
+              },
+              {
+                cmd: "git branch -d feature/login",
+                desc: "Deleta uma branch local que já foi mesclada (merged). Use -D (maiúsculo) para forçar exclusão mesmo se não mesclada.",
+                exampleRun: "Deleted branch feature/login (was 7b1c4d8).",
+                tip: "Mantenha seu repositório limpo excluindo branches após o merge."
+              }
+            ]
+          },
+          {
+            type: "benefits_grid",
+            title: "Por que Utilizar Feature Branches?",
+            items: [
+              { icon: "fa-shield-halved", title: "Estabilidade", desc: "Mantém a branch principal (main) sempre estável, compilando e pronta para produção." },
+              { icon: "fa-arrows-split-up-and-left", title: "Isolamento", desc: "Permite desenvolver funcionalidades experimentais sem afetar outros desenvolvedores." },
+              { icon: "fa-users-gear", title: "Paralelismo", desc: "Várias pessoas trabalham em módulos diferentes simultaneamente sem colisões de código." },
+              { icon: "fa-comments", title: "Code Review", desc: "Facilita a revisão por pares (Pull Requests) antes de qualquer código entrar na main." }
+            ]
+          },
+          {
+            type: "branch_naming_table",
+            title: "Convenções de Nomes de Branches (Padrão de Mercado)",
+            types: [
+              { type: "Feature branch", pattern: "feature/<nome-feature>", example: "feature/login, feature/checkout-pix" },
+              { type: "Bug fix branch", pattern: "bugfix/<nome-bug>", example: "bugfix/navbar, bugfix/memory-leak" },
+              { type: "Hotfix branch", pattern: "hotfix/<correcao-urgente>", example: "hotfix/security-patch-auth" },
+              { type: "Release branch", pattern: "release/<versao>", example: "release/v1.0.0, release/v2.1.0" },
+              { type: "Experiment branch", pattern: "experiment/<ideia>", example: "experiment/novo-ui-tailwind" }
+            ]
+          },
+          {
+            type: "additional_commands_table",
+            title: "Comandos Adicionais Úteis de Branches",
+            rows: [
+              { cmd: "git branch -r", desc: "Lista exclusivamente branches remotas conhecidas." },
+              { cmd: "git branch -m antigo novo", desc: "Renomeia uma branch local." },
+              { cmd: "git branch --merged", desc: "Lista apenas as branches que já foram totalmente mescladas na atual." },
+              { cmd: "git branch --no-merged", desc: "Lista branches com commits que ainda não foram mesclados." },
+              { cmd: "git switch -", desc: "Alterna rapidamente de volta para a branch em que você estava anteriormente." }
+            ]
+          }
+        ]
+      },
+      {
+        id: "merge",
+        name: "Merge & Conflitos",
+        icon: "fa-code-merge",
+        subtitle: "Integrando branches, Fast-Forward vs Merge Commit e resolução de conflitos",
+        summary: "Tudo sobre unir o trabalho de diferentes ramificações e como resolver conflitos de edição passo a passo.",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos de Integração (Merge)",
+            commands: [
+              {
+                cmd: "git merge <branch>",
+                desc: "Mescla o histórico da branch informada na branch atual onde você está posicionado.",
+                exampleRun: "# 1. Mude para a branch de destino\ngit switch main\n# 2. Faça o merge da feature\ngit merge feature/login",
+                tip: "Sempre posicione-se primeiro na branch que vai RECEBER o código (geralmente main)."
+              },
+              {
+                cmd: "git merge --no-ff <branch>",
+                desc: "Força a criação de um commit explícito de merge mesmo que um Fast-Forward seja possível. Preserva o histórico da ramificação.",
+                exampleRun: "git merge --no-ff feature/login\n# Cria commit: Merge branch 'feature/login'",
+                tip: "Muito recomendado em equipes para manter a visibilidade de onde começou e terminou uma feature."
+              },
+              {
+                cmd: "git merge --abort",
+                desc: "Interrompe e cancela o processo de merge em andamento caso ocorram conflitos difíceis e restaura o repo ao estado anterior.",
+                exampleRun: "git merge --abort",
+                tip: "Seu botão de pânico seguro se o conflito for confuso e você quiser recomeçar."
+              }
+            ]
+          },
+          {
+            type: "comparison_box",
+            title: "Fast-Forward vs Merge Commit",
+            items: [
+              {
+                title: "Fast-Forward Merge",
+                badge: "Sem divergências",
+                icon: "fa-forward",
+                points: [
+                  "Acontece quando não houve nenhum commit novo na main após a criação da feature branch.",
+                  "O ponteiro da main apenas se move para a ponta da feature branch.",
+                  "Nenhum commit adicional é criado.",
+                  "Histórico limpo e estritamente linear."
+                ]
+              },
+              {
+                title: "Merge Commit (--no-ff ou divergente)",
+                badge: "Com divergência ou flag",
+                icon: "fa-code-commit",
+                points: [
+                  "Acontece quando ambas as branches receberam novos commits separadamente.",
+                  "Cria um novo commit de junção que possui DOIS pais.",
+                  "Preserva visualmente o agrupamento dos commits da feature branch no log gráfico."
+                ]
+              }
+            ]
+          },
+          {
+            type: "conflict_guide",
+            title: "Como Surgem Conflitos e Como Resolvê-los",
+            cause: "Conflitos ocorrem quando duas pessoas ou branches alteram as MESMAS linhas do mesmo arquivo de maneiras distintas, ou quando uma deletou o arquivo que a outra editou.",
+            markersExplanation: [
+              { marker: "<<<<<<< HEAD", text: "Início do trecho da branch onde você está atualmente (ex: main)." },
+              { marker: "=======", text: "Linha divisora entre as duas versões em conflito." },
+              { marker: ">>>>>>> feature/login", text: "Fim do trecho vindo da branch que você está tentando mesclar." }
+            ],
+            steps: [
+              "1. Abra os arquivos conflitantes (indicados pelo git status).",
+              "2. Localize os marcadores de conflito (<<<<<<<, =======, >>>>>>>).",
+              "3. Edite o código manualmente escolhendo a versão correta ou combinando as duas.",
+              "4. Remova TODOS os marcadores de conflito.",
+              "5. Salve o arquivo editado.",
+              "6. Adicione o arquivo resolvido com 'git add <arquivo>'.",
+              "7. Conclua o merge com 'git commit' (ou 'git commit -m \"fix: resolve conflito em app.py\"')."
+            ]
+          }
+        ]
+      },
+      {
+        id: "remotes",
+        name: "Repositórios Remotos",
+        icon: "fa-cloud-arrow-up",
+        subtitle: "Conectando ao GitHub, clonagem, git push, git fetch e sincronização de branches",
+        summary: "Como conectar seu código a servidores remotos, enviar alterações (push) e baixar atualizações do time (fetch e pull).",
+        sections: [
+          {
+            type: "commands_list",
+            title: "Comandos de Repositórios Remotos",
+            commands: [
+              {
+                cmd: "git remote -v",
+                desc: "Lista os repositórios remotos conectados ao seu repositório local com seus apelidos e URLs.",
+                exampleRun: "origin  https://github.com/veriqta/demo.git (fetch)\norigin  https://github.com/veriqta/demo.git (push)",
+                tip: "Confirme se suas URLs estão em HTTPS ou SSH."
+              },
+              {
+                cmd: "git remote add origin <URL>",
+                desc: "Vincula um repositório remoto a um repositório local existente pela primeira vez. 'origin' é o nome padrão de convenção.",
+                exampleRun: "git remote add origin https://github.com/usuario/projeto.git",
+                tip: "Você só precisa executar esse comando uma única vez por projeto."
+              },
+              {
+                cmd: "git fetch origin",
+                desc: "Baixa os commits, arquivos e branches mais recentes do servidor remoto, MAS NÃO aplica ou mescla automaticamente no seu código local.",
+                exampleRun: "From https://github.com/veriqta/demo\n * [new branch]      feature/auth -> origin/feature/auth",
+                tip: "A maneira mais segura de inspecionar o que seus colegas fizeram sem correr risco de quebrar seu código local."
+              },
+              {
+                cmd: "git push -u origin main",
+                desc: "Envia seus commits locais para o servidor remoto. O parâmetro '-u' configura a branch de rastreamento upstream.",
+                exampleRun: "Enumerating objects: 5, done.\nWriting objects: 100% (5/5), done.\nBranch 'main' set up to track 'origin/main'.",
+                tip: "Após usar '-u' na primeira vez, nas próximas você pode digitar apenas 'git push'."
+              },
+              {
+                cmd: "git remote set-url origin <NOVA-URL>",
+                desc: "Atualiza a URL do repositório remoto caso o repositório tenha mudado de dono, nome ou você esteja trocando de HTTPS para SSH.",
+                exampleRun: "git remote set-url origin git@github.com:usuario/projeto.git",
+                tip: "Evita precisar deletar e adicionar o remote do zero."
+              }
+            ]
+          },
+          {
+            type: "remote_architecture",
+            title: "Como Branches Locais e Remotas se Conectam",
+            diagram: [
+              { side: "Repositório Local (Seu PC)", branch: "main / feature-login", action: "git push (sobe mudanças)" },
+              { side: "Repositório Remoto (GitHub/GitLab)", branch: "origin/main", action: "git fetch (baixa dados)" }
+            ],
+            pullExplanation: "<strong>Dica de Ouro:</strong> O comando <code>git pull</code> é o equivalente prático a rodar <code>git fetch</code> seguido imediatamente de <code>git merge origin/main</code>. Ele baixa e mescla tudo em um único comando."
+          },
+          {
+            type: "additional_commands_table",
+            title: "Comandos Remotos Complementares",
+            rows: [
+              { cmd: "git branch -r", desc: "Lista todas as branches que existem no servidor remoto." },
+              { cmd: "git checkout -b feature origin/feature", desc: "Cria uma branch local apontando e rastreando uma branch que só existia no servidor remoto." },
+              { cmd: "git remote show origin", desc: "Exibe informações completas de rastreamento, branches remotas e URLs do remote." },
+              { cmd: "git push origin --delete feature", desc: "Exclui uma branch diretamente no servidor remoto do GitHub." }
+            ],
+            keyTakeaway: "Use 'git remote -v' para auditar remotes, 'git remote add origin' para vincular pela primeira vez, 'git fetch' para baixar sem mesclar e 'git push -u origin <branch>' para subir suas entregas."
+          }
+        ]
+      }
+    ];
+
+    let currentTabId = "overview";
+    let terminalHistory = [];
+    let repoState = {
+      branch: "main",
+      staged: [],
+      modified: ["app.py"],
+      untracked: ["notes.txt"],
+      branches: ["main", "feature/login"],
+      remotes: { origin: "https://github.com/veriqta/demo.git" },
+      commits: [
+        { hash: "4d8f9c0", msg: "Initial commit", author: "Ann Felix" },
+        { hash: "9c2e1a3", msg: "Update README", author: "Ann Felix" },
+        { hash: "7b1c4d8", msg: "Fix bug in dashboard", author: "Ann Felix" },
+        { hash: "3a5f9e2", msg: "Add login feature", author: "Ann Felix" }
+      ]
+    };
+
+    function initTabs() {
+      const container = document.getElementById("tabs-container");
+      container.innerHTML = "";
+      
+      gitAppData.forEach((tab) => {
+        const btn = document.createElement("button");
+        btn.id = `tab-btn-${tab.id}`;
+        btn.onclick = () => switchTab(tab.id);
+        const isActive = tab.id === currentTabId;
+        
+        btn.className = `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+          isActive 
+            ? "bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-sm shadow-rose-500/10" 
+            : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+        }`;
+        
+        btn.innerHTML = `<i class="fa-solid ${tab.icon}"></i> <span>${tab.name}</span>`;
+        container.appendChild(btn);
+      });
+
+      renderCurrentTab();
+    }
+
+    function switchTab(tabId) {
+      currentTabId = tabId;
+      
+      // Atualizar classes dos botões
+      gitAppData.forEach((tab) => {
+        const btn = document.getElementById(`tab-btn-${tab.id}`);
+        if (btn) {
+          if (tab.id === tabId) {
+            btn.className = "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-sm shadow-rose-500/10";
+          } else {
+            btn.className = "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60";
+          }
+        }
+      });
+
+      renderCurrentTab();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCurrentTab() {
+      const tab = gitAppData.find((t) => t.id === currentTabId);
+      const container = document.getElementById("tab-contents");
+      if (!tab) return;
+
+      let html = `
+        <div class="space-y-8 animate-fadeIn">
+          <!-- Header do Tópico -->
+          <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden shadow-xl">
+            <div class="absolute -right-10 -bottom-10 opacity-5 text-slate-100 text-9xl pointer-events-none">
+              <i class="fa-solid ${tab.icon}"></i>
+            </div>
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 mb-2">
+                  <i class="fa-solid ${tab.icon}"></i> Módulo Oficial
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">${tab.name}</h2>
+                <p class="text-sm sm:text-base text-slate-300 mt-1">${tab.subtitle}</p>
+                <p class="text-xs sm:text-sm text-slate-400 mt-2 max-w-3xl">${tab.summary}</p>
+              </div>
+              <button onclick="openTerminalWithPreset('${tab.id}')" class="self-start md:self-center px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white font-medium text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-rose-600/20 transition-all active:scale-95">
+                <i class="fa-solid fa-play"></i> Praticar este Módulo
+              </button>
+            </div>
+          </div>
+      `;
+
+      // Renderizar seções dinâmicas
+      tab.sections.forEach((sec) => {
+        if (sec.type === "cards_grid") {
+          html += renderCardsGrid(sec);
+        } else if (sec.type === "interactive_workflow") {
+          html += renderWorkflow(sec);
+        } else if (sec.type === "devops_callout") {
+          html += renderDevopsCallout(sec);
+        } else if (sec.type === "commands_list") {
+          html += renderCommandsList(sec);
+        } else if (sec.type === "comparison_box") {
+          html += renderComparisonBox(sec);
+        } else if (sec.type === "additional_commands_table") {
+          html += renderAdditionalCommands(sec);
+        } else if (sec.type === "mistakes_and_checklist") {
+          html += renderMistakesChecklist(sec);
+        } else if (sec.type === "interactive_practice") {
+          html += renderInteractivePractice(sec);
+        } else if (sec.type === "file_states_table") {
+          html += renderFileStates(sec);
+        } else if (sec.type === "benefits_grid") {
+          html += renderBenefits(sec);
+        } else if (sec.type === "branch_naming_table") {
+          html += renderBranchNaming(sec);
+        } else if (sec.type === "conflict_guide") {
+          html += renderConflictGuide(sec);
+        } else if (sec.type === "remote_architecture") {
+          html += renderRemoteArch(sec);
+        }
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function renderCardsGrid(sec) {
+      return `
+        <div class="space-y-4">
+          <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> ${sec.title}
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${sec.items.map(item => `
+              <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl hover:border-slate-700 transition-all shadow-md">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="font-bold text-slate-100 text-base">${item.title}</h4>
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${item.badge}</span>
+                </div>
+                <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+                  ${item.points.map(pt => `
+                    <li class="flex items-start gap-2">
+                      <i class="fa-solid fa-check text-emerald-400 mt-1 text-xs shrink-0"></i>
+                      <span>${pt}</span>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWorkflow(sec) {
+      return `
+        <div class="space-y-4 bg-slate-900/60 border border-slate-800/80 p-6 rounded-2xl">
+          <div>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-network-wired text-orange-400"></i> ${sec.title}
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">${sec.description}</p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+            ${sec.steps.map((st, idx) => `
+              <div class="relative bg-slate-900 border ${st.color} p-4 rounded-xl flex flex-col justify-between shadow-lg">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-200 text-xs font-bold flex items-center justify-center border border-slate-700">${st.step}</span>
+                    <i class="fa-solid ${st.icon} text-lg"></i>
+                  </div>
+                  <h4 class="font-bold text-sm text-slate-100">${st.label}</h4>
+                  <p class="text-xs text-slate-300 mt-2">${st.action}</p>
+                </div>
+                <div class="mt-4 pt-2 border-t border-slate-800/80 flex items-center justify-between font-mono text-[11px] text-slate-400">
+                  <span class="truncate">${st.command}</span>
+                  <button onclick="copyToClipboard('${st.command}')" class="hover:text-white p-1" title="Copiar"><i class="fa-regular fa-copy"></i></button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDevopsCallout(sec) {
+      return `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2 bg-gradient-to-br from-emerald-950/20 via-slate-900 to-slate-900 border border-emerald-500/20 p-6 rounded-2xl shadow-lg">
+            <h3 class="text-lg font-bold text-emerald-300 flex items-center gap-2 mb-4">
+              <i class="fa-solid fa-server"></i> ${sec.title}
+            </h3>
+            <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+              ${sec.points.map(pt => `
+                <li class="flex items-start gap-2.5">
+                  <i class="fa-solid fa-circle-check text-emerald-400 mt-1 text-xs shrink-0"></i>
+                  <span>${pt}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          <div class="bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-900 border border-amber-500/30 p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-3">
+                <i class="fa-solid fa-lightbulb text-lg"></i>
+              </div>
+              <h4 class="font-bold text-amber-300 text-sm uppercase tracking-wider">Key Takeaway</h4>
+              <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">${sec.keyTakeaway}</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-amber-500/20 text-[11px] text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-heart text-amber-400"></i> Fundamento sólido para times ágeis
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCommandsList(sec) {
+      return `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-terminal text-rose-400"></i> ${sec.title}
+            </h3>
+            <span class="text-xs text-slate-400">Clique para copiar ou testar</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4">
+            ${sec.commands.map((c, i) => `
+              <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 hover:border-slate-700 transition-all shadow-md">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                  <div class="flex items-center gap-2 overflow-x-auto">
+                    <span class="px-2.5 py-1 rounded-md bg-slate-950 border border-slate-700/80 font-mono text-sm font-semibold text-rose-400 select-all whitespace-nowrap">
+                      ${escapeHtml(c.cmd)}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <button onclick="copyToClipboard('${escapeAttr(c.cmd)}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs flex items-center gap-1.5 transition-colors" title="Copiar Comando">
+                      <i class="fa-regular fa-copy"></i> Copiar
+                    </button>
+                    <button onclick="runCommandInSandbox('${escapeAttr(c.cmd)}')" class="px-2.5 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 hover:text-white border border-rose-500/30 text-xs flex items-center gap-1.5 transition-colors" title="Executar no Terminal">
+                      <i class="fa-solid fa-play text-[10px]"></i> Testar
+                    </button>
+                  </div>
+                </div>
+
+                <p class="text-xs sm:text-sm text-slate-300 mb-3">${c.desc}</p>
+
+                ${c.exampleRun ? `
+                  <div class="bg-slate-950 border border-slate-800/90 rounded-lg p-3 font-mono text-xs text-slate-400 overflow-x-auto mb-2">
+                    <div class="text-[10px] uppercase font-bold text-slate-500 mb-1 flex items-center gap-1">
+                      <i class="fa-solid fa-arrow-right-to-bracket text-emerald-400"></i> Exemplo de Saída:
+                    </div>
+                    <pre class="text-emerald-300/90 whitespace-pre">${escapeHtml(c.exampleRun)}</pre>
+                  </div>
+                ` : ''}
+
+                <div class="flex items-center gap-2 text-xs text-amber-400/90 mt-2">
+                  <i class="fa-solid fa-circle-info text-[11px]"></i>
+                  <span>${c.tip}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderComparisonBox(sec) {
+      return `
+        <div class="space-y-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-scale-balanced text-indigo-400"></i> ${sec.title}
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${sec.items.map(item => `
+              <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-sm">
+                      <i class="fa-solid ${item.icon}"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-100 text-sm sm:text-base">${item.title}</h4>
+                  </div>
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/30">${item.badge}</span>
+                </div>
+                <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+                  ${item.points.map(pt => `
+                    <li class="flex items-start gap-2">
+                      <i class="fa-solid fa-angle-right text-indigo-400 mt-1 text-xs shrink-0"></i>
+                      <span>${pt}</span>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdditionalCommands(sec) {
+      return `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
+          <h4 class="font-bold text-sm sm:text-base text-slate-100 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-bolt text-amber-400"></i> ${sec.title}
+          </h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider">
+                <tr>
+                  <th class="py-2.5 pr-4">Comando</th>
+                  <th class="py-2.5 px-4">O que faz</th>
+                  <th class="py-2.5 pl-4 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 font-sans">
+                ${sec.rows.map(r => `
+                  <tr class="hover:bg-slate-850/60 transition-colors">
+                    <td class="py-2.5 pr-4 font-mono font-semibold text-rose-400 whitespace-nowrap">${escapeHtml(r.cmd)}</td>
+                    <td class="py-2.5 px-4 text-slate-300">${r.desc}</td>
+                    <td class="py-2.5 pl-4 text-right whitespace-nowrap">
+                      <button onclick="copyToClipboard('${escapeAttr(r.cmd)}')" class="p-1 hover:text-white text-slate-400 mr-2" title="Copiar"><i class="fa-regular fa-copy"></i></button>
+                      <button onclick="runCommandInSandbox('${escapeAttr(r.cmd)}')" class="p-1 hover:text-rose-400 text-slate-400" title="Testar"><i class="fa-solid fa-play text-xs"></i></button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMistakesChecklist(sec) {
+      return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-rose-950/20 border border-rose-500/20 p-5 rounded-xl">
+            <h4 class="font-bold text-sm sm:text-base text-rose-300 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Erros Comuns de Iniciantes
+            </h4>
+            <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+              ${sec.mistakes.map(m => `
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-circle-xmark text-rose-400 mt-1 text-xs shrink-0"></i>
+                  <span>${m}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+
+          <div class="bg-emerald-950/20 border border-emerald-500/20 p-5 rounded-xl">
+            <h4 class="font-bold text-sm sm:text-base text-emerald-300 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-emerald-400"></i> Checklist Rápido de Sucesso
+            </h4>
+            <ul class="space-y-2 text-xs sm:text-sm text-slate-300">
+              ${sec.checklist.map(c => `
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-circle-check text-emerald-400 mt-1 text-xs shrink-0"></i>
+                  <span>${c}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderInteractivePractice(sec) {
+      return `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-dumbbell text-amber-400"></i> ${sec.title}
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-400 mb-6">Siga os passos sequenciais para dominar a rotina na prática:</p>
+
+          <div class="space-y-4">
+            ${sec.steps.map(s => `
+              <div class="flex items-start gap-3 bg-slate-950/70 border border-slate-800/80 p-3.5 rounded-xl">
+                <span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${s.num}</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs sm:text-sm font-semibold text-slate-200 mb-1">${s.title}</div>
+                  <div class="flex items-center justify-between bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 font-mono text-xs text-rose-300 overflow-x-auto">
+                    <span class="whitespace-pre">${escapeHtml(s.code)}</span>
+                    <button onclick="copyToClipboard('${escapeAttr(s.code)}')" class="hover:text-white p-1 ml-2 text-slate-400" title="Copiar"><i class="fa-regular fa-copy"></i></button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          ${sec.keyTakeaway ? `
+            <div class="mt-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm text-amber-200 flex items-start gap-2.5">
+              <i class="fa-solid fa-lightbulb text-amber-400 mt-0.5"></i>
+              <div><strong>Conclusão Chave:</strong> ${sec.keyTakeaway}</div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderFileStates(sec) {
+      return `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
+          <h4 class="font-bold text-sm sm:text-base text-slate-100 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-file-shield text-sky-400"></i> ${sec.title}
+          </h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider">
+                <tr>
+                  <th class="py-2.5 pr-4">Estado (State)</th>
+                  <th class="py-2.5 px-4">Significado</th>
+                  <th class="py-2.5 px-4">Como aparece no git status</th>
+                  <th class="py-2.5 pl-4">Exemplo</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                ${sec.states.map(s => `
+                  <tr class="hover:bg-slate-850/60">
+                    <td class="py-3 pr-4 font-semibold text-rose-300">${s.state}</td>
+                    <td class="py-3 px-4 text-slate-300">${s.meaning}</td>
+                    <td class="py-3 px-4 font-mono text-amber-300">${s.indicator}</td>
+                    <td class="py-3 pl-4 font-mono text-emerald-400">${s.example}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBenefits(sec) {
+      return `
+        <div class="space-y-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-cubes text-emerald-400"></i> ${sec.title}
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${sec.items.map(b => `
+              <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-md flex flex-col justify-between">
+                <div>
+                  <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+                    <i class="fa-solid ${b.icon} text-lg"></i>
+                  </div>
+                  <h4 class="font-bold text-slate-100 text-sm mb-1">${b.title}</h4>
+                  <p class="text-xs text-slate-400">${b.desc}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBranchNaming(sec) {
+      return `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
+          <h4 class="font-bold text-sm sm:text-base text-slate-100 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-tags text-rose-400"></i> ${sec.title}
+          </h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider">
+                <tr>
+                  <th class="py-2.5 pr-4">Tipo de Branch</th>
+                  <th class="py-2.5 px-4">Padrão Recomendado</th>
+                  <th class="py-2.5 pl-4">Exemplos Reais</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                ${sec.types.map(t => `
+                  <tr class="hover:bg-slate-850/60">
+                    <td class="py-3 pr-4 font-semibold text-slate-200">${t.type}</td>
+                    <td class="py-3 px-4 font-mono text-purple-300">${t.pattern}</td>
+                    <td class="py-3 pl-4 font-mono text-emerald-400">${t.example}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderConflictGuide(sec) {
+      return `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+          <div>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-shield-virus text-amber-400"></i> ${sec.title}
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-300 mt-2">${sec.cause}</p>
+          </div>
+
+          <!-- Anatomia do Marcador de Conflito -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-3 font-sans flex items-center gap-2">
+              <i class="fa-solid fa-code"></i> Anatomia Visual dos Marcadores de Conflito no Arquivo
+            </div>
+            <div class="bg-rose-950/40 border-l-4 border-rose-500 p-2 my-1 text-rose-200">
+              &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD <span class="text-slate-400 font-sans text-[11px]">(Sua versão local / destino)</span>
+              <div class="text-white font-bold my-1">print("Versão anterior da Main")</div>
+            </div>
+            <div class="text-amber-400 font-bold px-2">======= <span class="text-slate-400 font-sans text-[11px] font-normal">(Divisor de versões)</span></div>
+            <div class="bg-indigo-950/40 border-l-4 border-indigo-500 p-2 my-1 text-indigo-200">
+              <div class="text-white font-bold my-1">print("Versão nova vinda da Feature/Login")</div>
+              &gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login <span class="text-slate-400 font-sans text-[11px]">(Versão da branch a ser mesclada)</span>
+            </div>
+          </div>
+
+          <!-- Passos para resolver -->
+          <div>
+            <h4 class="font-bold text-sm text-slate-200 mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-wrench text-emerald-400"></i> Roteiro de Resolução Definitivo:
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs sm:text-sm text-slate-300">
+              ${sec.steps.map(st => `
+                <div class="flex items-center gap-2.5 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                  <i class="fa-solid fa-arrow-right text-emerald-400 text-xs shrink-0"></i>
+                  <span>${st}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRemoteArch(sec) {
+      return `
+        <div class="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-diagram-project text-sky-400"></i> ${sec.title}
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-900 border border-sky-500/30 p-4 rounded-xl text-center">
+              <i class="fa-solid fa-laptop text-2xl text-sky-400 mb-2"></i>
+              <div class="font-bold text-slate-100 text-sm">Local Repository (Seu Computador)</div>
+              <div class="text-xs text-slate-400 mt-1">Branches ativas: main, feature/login</div>
+              <div class="mt-3 inline-block px-3 py-1 rounded bg-rose-500/20 text-rose-300 text-xs font-mono font-semibold">git push ➔</div>
+            </div>
+            <div class="bg-slate-900 border border-indigo-500/30 p-4 rounded-xl text-center">
+              <i class="fa-solid fa-cloud text-2xl text-indigo-400 mb-2"></i>
+              <div class="font-bold text-slate-100 text-sm">Remote Repository (GitHub)</div>
+              <div class="text-xs text-slate-400 mt-1">Branches rastreadas: origin/main</div>
+              <div class="mt-3 inline-block px-3 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs font-mono font-semibold">⬅ git fetch / git pull</div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs sm:text-sm text-slate-300">
+            ${sec.pullExplanation}
+          </div>
+        </div>
+      `;
+    }
+
+    function copyToClipboard(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(`Comando copiado: "${text.substring(0, 32)}${text.length > 32 ? '...' : ''}"`);
+      } catch (err) {
+        showToast("Erro ao copiar comando.");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      const text = document.getElementById("toast-text");
+      text.innerText = message;
+      toast.classList.remove("translate-y-20", "opacity-0", "pointer-events-none");
+      setTimeout(() => {
+        toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
+      }, 2500);
+    }
+
+    function toggleTerminalModal() {
+      const modal = document.getElementById("terminal-modal");
+      modal.classList.toggle("hidden");
+      if (!modal.classList.contains("hidden")) {
+        setTimeout(() => document.getElementById("terminal-input").focus(), 100);
+      }
+    }
+
+    function openTerminalWithPreset(topicId) {
+      toggleTerminalModal();
+      printTerminalLine(`<span class="text-amber-400 font-bold">--- Ambiente configurado para o módulo: ${topicId.toUpperCase()} ---</span>`);
+      printTerminalLine(`Digite <span class="text-emerald-400">git status</span> ou consulte a aba para comandos!`);
+    }
+
+    function handleTerminalSubmit(event) {
+      event.preventDefault();
+      const input = document.getElementById("terminal-input");
+      const rawCmd = input.value.trim();
+      if (!rawCmd) return;
+      input.value = "";
+      runCommand(rawCmd);
+    }
+
+    function runCommandInSandbox(cmd) {
+      if (document.getElementById("terminal-modal").classList.contains("hidden")) {
+        toggleTerminalModal();
+      }
+      runCommand(cmd);
+    }
+
+    function printTerminalLine(htmlContent) {
+      const screen = document.getElementById("terminal-screen");
+      const line = document.createElement("div");
+      line.className = "leading-relaxed break-words";
+      line.innerHTML = htmlContent;
+      screen.appendChild(line);
+      screen.scrollTop = screen.scrollHeight;
+    }
+
+    function runCommand(commandStr) {
+      const normalized = commandStr.trim();
+      // Imprime o comando executado no terminal
+      printTerminalLine(`<span class="text-emerald-400 font-bold">user@dev:~/app$</span> <span class="text-white">${escapeHtml(normalized)}</span>`);
+
+      // Motor de processamento de comandos simulados do Git
+      if (normalized === "clear") {
+        document.getElementById("terminal-screen").innerHTML = "";
+        return;
+      }
+
+      if (normalized === "help") {
+        printTerminalLine(`
+          <div class="text-slate-300 space-y-1">
+            <div>Comandos simulados disponíveis no terminal:</div>
+            <div class="text-amber-300">git --version, git status, git status -sb</div>
+            <div class="text-amber-300">git add &lt;file&gt;, git add .</div>
+            <div class="text-amber-300">git commit -m "&lt;mensagem&gt;"</div>
+            <div class="text-amber-300">git log, git log --oneline, git log --graph</div>
+            <div class="text-amber-300">git branch, git branch -a, git switch -c &lt;nome&gt;, git switch &lt;nome&gt;</div>
+            <div class="text-amber-300">git diff, git diff --stat, git diff --cached</div>
+            <div class="text-amber-300">git remote -v, git push, git fetch, clear</div>
+          </div>
+        `);
+        return;
+      }
+
+      if (normalized === "git --version") {
+        printTerminalLine("git version 2.42.0");
+        return;
+      }
+
+      if (normalized === "git status") {
+        let output = `<div>On branch <span class="text-rose-400 font-bold">${repoState.branch}</span></div>`;
+        if (repoState.staged.length > 0) {
+          output += `<div class="text-emerald-400 mt-1">Changes to be committed:</div>`;
+          output += `<div class="text-slate-400 text-xs">  (use "git restore --staged <file>..." to unstage)</div>`;
+          repoState.staged.forEach(f => {
+            output += `<div class="text-emerald-400 ml-4">\tmodified:   ${f}</div>`;
+          });
+        }
+        if (repoState.modified.length > 0) {
+          output += `<div class="text-rose-400 mt-1">Changes not staged for commit:</div>`;
+          output += `<div class="text-slate-400 text-xs">  (use "git add <file>..." to update what will be committed)</div>`;
+          repoState.modified.forEach(f => {
+            output += `<div class="text-rose-400 ml-4">\tmodified:   ${f}</div>`;
+          });
+        }
+        if (repoState.untracked.length > 0) {
+          output += `<div class="text-rose-400 mt-1">Untracked files:</div>`;
+          output += `<div class="text-slate-400 text-xs">  (use "git add <file>..." to include in what will be committed)</div>`;
+          repoState.untracked.forEach(f => {
+            output += `<div class="text-rose-400 ml-4">\t${f}</div>`;
+          });
+        }
+        if (repoState.staged.length === 0 && repoState.modified.length === 0 && repoState.untracked.length === 0) {
+          output += `<div class="text-emerald-400 mt-1">nothing to commit, working tree clean</div>`;
+        }
+        printTerminalLine(output);
+        return;
+      }
+
+      if (normalized === "git status -sb") {
+        let out = `## <span class="text-rose-400">${repoState.branch}</span><br>`;
+        repoState.staged.forEach(f => out += `<span class="text-emerald-400">M  ${f}</span><br>`);
+        repoState.modified.forEach(f => out += `<span class="text-rose-400"> M ${f}</span><br>`);
+        repoState.untracked.forEach(f => out += `<span class="text-rose-400">?? ${f}</span><br>`);
+        printTerminalLine(out || "## main (clean)");
+        return;
+      }
+
+      if (normalized === "git add ." || normalized === "git add -A") {
+        repoState.staged = [...new Set([...repoState.staged, ...repoState.modified, ...repoState.untracked])];
+        repoState.modified = [];
+        repoState.untracked = [];
+        printTerminalLine(`<span class="text-emerald-300">Todos os arquivos modificados e não rastreados foram adicionados à Staging Area!</span>`);
+        return;
+      }
+
+      if (normalized.startsWith("git add ")) {
+        const file = normalized.replace("git add ", "").trim();
+        repoState.modified = repoState.modified.filter(f => f !== file);
+        repoState.untracked = repoState.untracked.filter(f => f !== file);
+        if (!repoState.staged.includes(file)) repoState.staged.push(file);
+        printTerminalLine(`<span class="text-emerald-300">Arquivo '${file}' adicionado à Staging Area com sucesso!</span>`);
+        return;
+      }
+
+      if (normalized.startsWith("git commit")) {
+        if (repoState.staged.length === 0) {
+          printTerminalLine(`<span class="text-rose-400">On branch ${repoState.branch}<br>nothing added to commit but untracked files present (use "git add" to track)</span>`);
+          return;
+        }
+        const match = normalized.match(/-m\s+["'](.+)["']/);
+        const msg = match ? match[1] : "Commit de atualização";
+        const newHash = Math.random().toString(16).substring(2, 9);
+        repoState.commits.unshift({ hash: newHash, msg: msg, author: "Ann Felix" });
+        const count = repoState.staged.length;
+        repoState.staged = [];
+        printTerminalLine(`[${repoState.branch} ${newHash}] ${escapeHtml(msg)}<br> ${count} file(s) changed, ${count * 4} insertions(+)`);
+        return;
+      }
+
+      if (normalized === "git log --oneline") {
+        let out = repoState.commits.map((c, i) => {
+          const headTag = i === 0 ? `<span class="text-sky-400 font-bold">(HEAD -&gt; ${repoState.branch})</span> ` : '';
+          return `<span class="text-amber-400 font-mono">${c.hash}</span> ${headTag}${escapeHtml(c.msg)}`;
+        }).join("<br>");
+        printTerminalLine(out);
+        return;
+      }
+
+      if (normalized === "git log" || normalized === "git log -n 5") {
+        let out = repoState.commits.map(c => `
+          <div class="text-amber-400">commit ${c.hash}8b9415ac852de410983</div>
+          <div class="text-slate-300">Author: ${c.author} &lt;ann@example.com&gt;</div>
+          <div class="text-slate-400 text-xs">Date:   ${new Date().toLocaleDateString('pt-BR')} 10:15:30</div>
+          <div class="text-white mt-1 pl-4 font-semibold">${escapeHtml(c.msg)}</div>
+        `).join("<br>");
+        printTerminalLine(out);
+        return;
+      }
+
+      if (normalized === "git log --graph --oneline --all" || normalized === "git log --graph") {
+        printTerminalLine(`
+          <div class="font-mono text-xs">
+            <span class="text-rose-400">*</span> <span class="text-amber-400">${repoState.commits[0]?.hash}</span> <span class="text-sky-400">(HEAD -&gt; ${repoState.branch})</span> ${repoState.commits[0]?.msg}<br>
+            <span class="text-rose-400">*</span> <span class="text-amber-400">7b1c4d8</span> Fix bug in dashboard<br>
+            <span class="text-purple-400">|</span> <span class="text-rose-400">*</span> <span class="text-amber-400">2c9d1e7</span> <span class="text-emerald-400">(feature/ui)</span> Update UI<br>
+            <span class="text-purple-400">|/</span><br>
+            <span class="text-rose-400">*</span> <span class="text-amber-400">9c2e1a3</span> Update README<br>
+            <span class="text-rose-400">*</span> <span class="text-amber-400">4d8f9c0</span> Initial commit
+          </div>
+        `);
+        return;
+      }
+
+      if (normalized === "git branch") {
+        const out = repoState.branches.map(b => {
+          return b === repoState.branch 
+            ? `<span class="text-emerald-400 font-bold">* ${b}</span>`
+            : `<span class="text-slate-300">  ${b}</span>`;
+        }).join("<br>");
+        printTerminalLine(out);
+        return;
+      }
+
+      if (normalized === "git branch -a") {
+        let out = repoState.branches.map(b => {
+          return b === repoState.branch 
+            ? `<span class="text-emerald-400 font-bold">* ${b}</span>` 
+            : `<span class="text-slate-300">  ${b}</span>`;
+        }).join("<br>");
+        out += `<br><span class="text-rose-400">  remotes/origin/main</span><br><span class="text-rose-400">  remotes/origin/feature/login</span>`;
+        printTerminalLine(out);
+        return;
+      }
+
+      if (normalized.startsWith("git switch -c ") || normalized.startsWith("git checkout -b ")) {
+        const bName = normalized.split(" ")[normalized.startsWith("git switch -c ") ? 3 : 2];
+        if (bName) {
+          if (!repoState.branches.includes(bName)) repoState.branches.push(bName);
+          repoState.branch = bName;
+          document.getElementById("term-branch-name").innerText = bName;
+          printTerminalLine(`<span class="text-emerald-300">Alternado para a nova branch '${bName}'</span>`);
+          return;
+        }
+      }
+
+      if (normalized.startsWith("git switch ") || normalized.startsWith("git checkout ")) {
+        const bName = normalized.split(" ")[normalized.startsWith("git switch ") ? 2 : 2];
+        if (bName && repoState.branches.includes(bName)) {
+          repoState.branch = bName;
+          document.getElementById("term-branch-name").innerText = bName;
+          printTerminalLine(`<span class="text-emerald-300">Alternado para a branch '${bName}'</span>`);
+          return;
+        } else {
+          printTerminalLine(`<span class="text-rose-400">error: pathspec '${bName}' did not match any file(s) known to git</span>`);
+          return;
+        }
+      }
+
+      if (normalized === "git diff") {
+        if (repoState.modified.length === 0) {
+          printTerminalLine("<span class=\"text-slate-400\">Nenhuma alteração não preparada encontrada no working directory.</span>");
+        } else {
+          printTerminalLine(`
+            <span class="text-slate-400">diff --git a/app.py b/app.py</span><br>
+            <span class="text-slate-400">--- a/app.py</span><br>
+            <span class="text-slate-400">+++ b/app.py</span><br>
+            <span class="text-indigo-400">@@ -1,3 +1,4 @@</span><br>
+            <span class="text-emerald-400">+print("Hello Git Interativo!")</span><br>
+            <span class="text-emerald-400">+print("Nova feature em andamento")</span>
+          `);
+        }
+        return;
+      }
+
+      if (normalized === "git diff --stat") {
+        printTerminalLine(`
+          app.py     | 2 ++<br>
+          readme.md  | 5 +++--<br>
+          <span class="text-white font-semibold">2 files changed, 6 insertions(+), 1 deletion(-)</span>
+        `);
+        return;
+      }
+
+      if (normalized === "git diff --cached") {
+        if (repoState.staged.length === 0) {
+          printTerminalLine("<span class=\"text-slate-400\">Staging Area vazia. Use 'git add' primeiro para preparar arquivos.</span>");
+        } else {
+          printTerminalLine(`
+            <span class="text-slate-400">diff --git a/staged_file.py b/staged_file.py</span><br>
+            <span class="text-emerald-400">+ // Arquivo devidamente preparado para commit</span><br>
+            <span class="text-emerald-400">+ def executar_login(): return True</span>
+          `);
+        }
+        return;
+      }
+
+      if (normalized === "git remote -v") {
+        printTerminalLine(`
+          origin  ${repoState.remotes.origin} (fetch)<br>
+          origin  ${repoState.remotes.origin} (push)
+        `);
+        return;
+      }
+
+      if (normalized.startsWith("git push")) {
+        printTerminalLine(`
+          Enumerating objects: 5, done.<br>
+          Counting objects: 100% (5/5), done.<br>
+          Writing objects: 100% (5/5), 450 bytes | 450.00 KiB/s, done.<br>
+          To https://github.com/veriqta/demo.git<br>
+          <span class="text-emerald-400">* [new branch]      ${repoState.branch} -&gt; ${repoState.branch}</span><br>
+          Branch '${repoState.branch}' set up to track remote branch '${repoState.branch}' from 'origin'.
+        `);
+        return;
+      }
+
+      if (normalized === "git fetch" || normalized === "git fetch origin") {
+        printTerminalLine(`
+          From https://github.com/veriqta/demo<br>
+          <span class="text-sky-300"> * [new branch]      feature/auth -&gt; origin/feature/auth</span><br>
+          <span class="text-slate-400">Objetos atualizados com sucesso do repositório remoto.</span>
+        `);
+        return;
+      }
+
+      // Resposta padrão amigável caso seja outro comando
+      printTerminalLine(`<span class="text-slate-400">Comando executado: "${escapeHtml(normalized)}". (Simulação concluída com sucesso. Digite 'help' para ver os principais).</span>`);
+    }
+
+    function resetTerminalState() {
+      repoState = {
+        branch: "main",
+        staged: [],
+        modified: ["app.py"],
+        untracked: ["notes.txt"],
+        branches: ["main", "feature/login"],
+        remotes: { origin: "https://github.com/veriqta/demo.git" },
+        commits: [
+          { hash: "4d8f9c0", msg: "Initial commit", author: "Ann Felix" },
+          { hash: "9c2e1a3", msg: "Update README", author: "Ann Felix" },
+          { hash: "7b1c4d8", msg: "Fix bug in dashboard", author: "Ann Felix" },
+          { hash: "3a5f9e2", msg: "Add login feature", author: "Ann Felix" }
+        ]
+      };
+      document.getElementById("term-branch-name").innerText = "main";
+      document.getElementById("terminal-screen").innerHTML = `
+        <div class="text-slate-500 text-xs">
+          Estado do repositório restaurado ao padrão de demonstração.
+        </div>
+      `;
+      showToast("Ambiente de teste resetado!");
+    }
+
+    function openQuickSearch() {
+      const modal = document.getElementById("search-modal");
+      modal.classList.remove("hidden");
+      const input = document.getElementById("search-input");
+      input.value = "";
+      input.focus();
+      filterCommands("");
+    }
+
+    function closeQuickSearch() {
+      document.getElementById("search-modal").classList.add("hidden");
+    }
+
+    function filterCommands(query) {
+      const resultsContainer = document.getElementById("search-results");
+      const q = query.toLowerCase().trim();
+      let matched = [];
+
+      gitAppData.forEach(tab => {
+        tab.sections.forEach(sec => {
+          if (sec.commands) {
+            sec.commands.forEach(c => {
+              if (c.cmd.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)) {
+                matched.push({ cmd: c.cmd, desc: c.desc, tabId: tab.id, tabName: tab.name });
+              }
+            });
+          }
+          if (sec.rows) {
+            sec.rows.forEach(r => {
+              if (r.cmd.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q)) {
+                matched.push({ cmd: r.cmd, desc: r.desc, tabId: tab.id, tabName: tab.name });
+              }
+            });
+          }
+        });
+      });
+
+      if (matched.length === 0) {
+        resultsContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">Nenhum comando encontrado para "${escapeHtml(query)}"</div>`;
+        return;
+      }
+
+      resultsContainer.innerHTML = matched.slice(0, 8).map(m => `
+        <div class="p-3 hover:bg-slate-800/60 rounded-xl flex items-center justify-between gap-3 transition-colors">
+          <div class="min-w-0">
+            <span class="text-xs font-mono font-bold text-rose-400 block truncate">${escapeHtml(m.cmd)}</span>
+            <span class="text-xs text-slate-400 line-clamp-1">${escapeHtml(m.desc)}</span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="switchTab('${m.tabId}'); closeQuickSearch();" class="text-[11px] px-2 py-1 rounded bg-slate-800 text-slate-300 hover:text-white border border-slate-700">Ver Módulo</button>
+            <button onclick="copyToClipboard('${escapeAttr(m.cmd)}')" class="text-[11px] p-1.5 rounded hover:text-white text-slate-400"><i class="fa-regular fa-copy"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    window.onload = function() {
+      initTabs();
+      
+      // Atalhos de teclado convenientes (ESC para fechar modais)
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+          document.getElementById("terminal-modal").classList.add("hidden");
+          document.getElementById("search-modal").classList.add("hidden");
+        }
+      });
+    };
+  </script>
+</body>
+</html>

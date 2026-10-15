@@ -14,10 +14,10 @@ bash
 
 ```
 # Chave para a Conta 1 (Pessoal)
-ssh-keygen -t ed25519 -C "seu_email_pessoal@example.com" -f ~/.ssh/id_ed25519_pessoal
+ssh-keygen -t ed25519 -C "orlandovcj@gmail.com" -f ~/.ssh/id_ed25519_pessoal
 
-# Chave para a Conta 2 (Trabalho/Secundária)
-ssh-keygen -t ed25519 -C "seu_email_trabalho@example.com" -f ~/.ssh/id_ed25519_trabalho
+# Chave para a Conta 2 (Estudos)
+ssh-keygen -t ed25519 -C "orlando.junior4@faculdadegran.edu.br" -f ~/.ssh/id_ed25519_estudos
 ```
 
 Use o código com cuidado.
@@ -44,10 +44,18 @@ Use o código com cuidado.
 
 Cole a seguinte estrutura dentro dele:
 
-text
+```bash
+# Conta Pessoal (Padrão)
+Host github.com-pessoal
+    HostName github.com
+    User git    
+    IdentityFile ~/.ssh/id_ed25519_pessoal
 
-```
-# Conta Pessoal (Padrão)Host github.com-pessoal    HostName github.com    User git    IdentityFile ~/.ssh/id_ed25519_pessoal# Conta de TrabalhoHost github.com-trabalho    HostName github.com    User git    IdentityFile ~/.ssh/id_ed25519_trabalho
+# Conta de Estudos
+Host github.com-estudos
+    HostName github.com    
+    User git    
+    IdentityFile ~/.ssh/id_ed25519_estudos
 ```
 
 Use o código com cuidado.
@@ -58,22 +66,14 @@ Use o código com cuidado.
 
 A partir de agora, ao clonar um repositório, você mudará levemente a URL para indicar qual conta quer usar.
 
-- **Para clonar um repositório da conta de trabalho:**
-  
-  bash
-  
-  ```
-  git clone git@github.com-trabalho:usuario_trabalho/nome-do-repositorio.git
-  ```
-  
-  Use o código com cuidado.
+**Para clonar um repositório da conta de estudos:**
 
 - **Se o repositório já está no seu PC**, mude a URL dele usando o comando:
   
   bash
   
   ```
-  git remote set-url origin git@github.com-trabalho:usuario_trabalho/nome-do-repositorio.git
+  git remote set-url origin git@github.com-estudos:orlandocastrojr/nome-do-repositorio.git
   ```
   
   Use o código com cuidado.
@@ -84,13 +84,15 @@ Para garantir que os commits fiquem com o nome e e-mail certos em cada projeto, 
 bash
 
 ```
-git config user.name "Seu Nome Trabalho"
-git config user.email "seu_email_trabalho@example.com"
+git config user.name "orlandocastrojr"
+git config user.email "orlando.junior4@faculdadegran.edu.br"
 ```
 
-Use o código com cuidado.
+**Se estiver trabalhando com a conta pessoal, usar `git@github.com-pessoal:orlandovcj/nome-do-repositorio.git`.**
 
-Você prefere seguir essa configuração usando **chaves SSH** ou gostaria de saber como resolver isso usando o **GitHub Desktop / Gerenciador de Credenciais do Windows** se não quiser mexer no terminal?
+
+
+### Configuração para usar o GitHub Desktop / Gerenciador de Credenciais do Windows se não quiser mexer no terminal
 
 Se você prefere evitar o terminal e as chaves SSH, o processo fica muito mais visual. Abaixo estão as duas principais alternativas para gerenciar suas duas contas.
 
